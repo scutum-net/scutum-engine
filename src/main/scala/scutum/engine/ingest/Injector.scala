@@ -1,6 +1,7 @@
 package scutum.engine.ingest
 
 import java.io.File
+
 import com.google.inject._
 import akka.actor.ActorSystem
 import scutum.engine.contracts._
@@ -8,6 +9,7 @@ import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import net.codingwell.scalaguice.ScalaModule
+import scutum.engine.contracts.ConfigurationParser.Configuration
 
 
 class Injector extends AbstractModule with ScalaModule with LazyLogging {
@@ -27,7 +29,7 @@ class Injector extends AbstractModule with ScalaModule with LazyLogging {
   @Singleton def getConfig: Configuration = {
     val logFile = new File("./app.conf")
     logger.info(s"config loaded: ${logFile.getCanonicalPath} ${logFile.exists}")
-    Configuration.parseConfig(if (logFile.exists)
+    ConfigurationParser.parseConfig(if (logFile.exists)
       ConfigFactory.parseFile(logFile) else ConfigFactory.load("app.conf"))
   }
 
