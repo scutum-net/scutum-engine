@@ -8,3 +8,10 @@ libraryDependencies += "net.codingwell" % "scala-guice_2.12" % "4.1.0"
 libraryDependencies += "com.typesafe.akka" % "akka-http_2.12" % "10.0.8"
 libraryDependencies += "com.typesafe.akka" % "akka-stream_2.12" % "2.5.3"
 libraryDependencies += "com.typesafe.scala-logging" % "scala-logging_2.12" % "3.5.0"
+
+
+assemblyMergeStrategy in assembly := {
+  case PathList("reference.conf") => MergeStrategy.concat
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
