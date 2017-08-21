@@ -7,6 +7,7 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
 libraryDependencies += "net.codingwell" % "scala-guice_2.12" % "4.1.0"
 libraryDependencies += "com.typesafe.akka" % "akka-http_2.12" % "10.0.8"
 libraryDependencies += "com.typesafe.akka" % "akka-stream_2.12" % "2.5.3"
+libraryDependencies += "org.scalatest" % "scalatest_2.12" % "3.0.3" % "test"
 libraryDependencies += "com.typesafe.scala-logging" % "scala-logging_2.12" % "3.5.0"
 
 
