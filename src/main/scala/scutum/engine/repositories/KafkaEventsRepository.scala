@@ -8,10 +8,9 @@ import scala.collection.JavaConverters._
 import org.apache.kafka.clients.consumer._
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.config.SslConfigs
-import scutum.engine.repositories.KafkaSessionsRepository._
+import scutum.engine.repositories.KafkaEventsRepository._
 
-class KafkaSessionsRepository(config: KafkaConfig) {
-  private val topic = config.topics
+class KafkaEventsRepository(config: KafkaConfig) {
   private val consumer = createConsumer()
   private val producer = createProducer()
 
@@ -22,6 +21,10 @@ class KafkaSessionsRepository(config: KafkaConfig) {
   }
 
   def publish(key: String, data: String, flush: Boolean = true): Unit = {
+    publish(config.topics, key, data, flush)
+  }
+
+  def publish(topic: String, key: String, data: String, flush: Boolean): Unit = {
     val record = new ProducerRecord[String, String](topic, key, data)
     producer.send(record)
     if(flush) producer.flush()
@@ -76,7 +79,7 @@ class KafkaSessionsRepository(config: KafkaConfig) {
 }
 
 
-object KafkaSessionsRepository {
+object KafkaEventsRepository {
   val serializer: Gson = new GsonBuilder().create()
   private def getClientId = UUID.randomUUID().toString
 
@@ -121,7 +124,7 @@ object KafkaSessionsRepository {
       config.getString("conf.kafka.encryptionFile"))
   }
 
-  def create(config: Config): KafkaSessionsRepository = {
-    new KafkaSessionsRepository(createKafkaConfig(config))
+  def create(config: Config): KafkaEventsRepository = {
+    new KafkaEventsRepository(createKafkaConfig(config))
   }
 }

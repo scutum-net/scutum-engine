@@ -5,10 +5,11 @@ import com.google.inject._
 import akka.actor.ActorSystem
 import scutum.engine.contracts._
 import akka.stream.ActorMaterializer
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import net.codingwell.scalaguice.ScalaModule
 import scutum.engine.contracts.ConfigurationParser.Configuration
+import scutum.engine.repositories.KafkaEventsRepository
 
 
 class Injector extends AbstractModule with ScalaModule with LazyLogging {
@@ -27,22 +28,31 @@ class Injector extends AbstractModule with ScalaModule with LazyLogging {
   @Provides
   @Singleton def getMaterializer(implicit @Inject system: ActorSystem) = ActorMaterializer()
 
-  // get config
+
   @Provides
-  @Singleton def getConfig: Configuration = {
-    val logFile = new File("./app.conf")
-    logger.info(s"config loaded: ${logFile.getCanonicalPath} ${logFile.exists}")
-    ConfigurationParser.parseConfig(if (logFile.exists)
-      ConfigFactory.parseFile(logFile) else ConfigFactory.load("app.conf"))
+  @Singleton def getConfig: Config = {
+    val configFile = new File("./app.conf")
+    logger.info(s"config loaded: ${configFile.getCanonicalPath} ${configFile.exists}")
+    if (configFile.exists)
+      ConfigFactory.parseFile(configFile)
+    else
+      ConfigFactory.load("app.conf")
   }
 
-  // get routing service
-  @Provides
-  @Singleton def getRoutingService: RoutingService = {
-    new {} with RoutingService {
-      override def authorizeCustomer(customerId: Int): Boolean = true
 
-      override def publishData(key: String, data: String): Unit = logger.debug("publish")
+  @Provides
+  @Singleton def getCommonConfig(implicit @Inject config: Config): Configuration = {
+    ConfigurationParser.parseConfig(config)
+  }
+
+
+  @Provides
+  @Singleton def getRoutingService(implicit @Inject config: Config): RoutingService = {
+    val eventsRepository = KafkaEventsRepository.create(config)
+
+    new {} with RoutingService {
+      override def authorizeCustomer(customerId: Int): Boolean = customerId == 0
+      override def publishData(key: String, data: String): Unit = eventsRepository.publish(key, data)
     }
   }
 }
