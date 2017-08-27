@@ -3,6 +3,7 @@ version := "1.0"
 scalaVersion := "2.12.1"
 
 libraryDependencies += "com.google.code.gson" % "gson" % "2.8.1"
+libraryDependencies += "com.github.gphat" %% "wabisabi" % "2.2.0"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
 libraryDependencies += "net.codingwell" % "scala-guice_2.12" % "4.1.0"
 libraryDependencies += "org.apache.kafka" % "kafka-clients" % "0.10.2.0"
