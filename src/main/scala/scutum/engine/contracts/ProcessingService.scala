@@ -1,6 +1,6 @@
 package scutum.engine.contracts
 
-class ProcessingService {
+trait ProcessingService {
 
 }
 

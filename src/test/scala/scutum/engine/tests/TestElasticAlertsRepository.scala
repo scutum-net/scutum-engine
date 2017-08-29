@@ -7,7 +7,8 @@ import scutum.engine.repositories.ElasticsAlertsRepository
 class TestElasticAlertsRepository extends WordSpecLike{
   "Kafka repository" must {
     "Common kafka client tests" in {
-      val config = ElasticsAlertsRepository.Config("http://localhost:9200", 100, 8)
+      val config = ElasticsAlertsRepository
+        .ElasticSearchConfig("http://localhost:9200", 100, 8)
       val repo = new ElasticsAlertsRepository(config)
 
       val in = Alert(101, "Some alert")

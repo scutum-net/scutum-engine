@@ -3,15 +3,15 @@ package scutum.engine.repositories
 import wabisabi.Client
 import com.google.gson._
 import scala.concurrent._
-import java.lang.reflect.Type
+import java.lang.reflect._
+import com.typesafe.config._
 import scala.concurrent.duration._
-import scutum.engine.contracts.Alert
+import scutum.engine.contracts._
 import java.util.concurrent.Executors
 import scutum.engine.repositories.ElasticsAlertsRepository._
 
 // elastic search alerts repo
-class ElasticsAlertsRepository(config: Config) {
-  private val map = new java.util.HashMap[String, String]()
+class ElasticsAlertsRepository(config: ElasticSearchConfig) {
   private val client = new Client(config.url)
   private val serializer: Gson = new GsonBuilder()
     .registerTypeAdapter(Alert.getClass, new Serializer).create()
@@ -42,7 +42,7 @@ object ElasticsAlertsRepository {
   private val serializer: Gson = new GsonBuilder().create()
 
   // elastic search config
-  case class Config(url: String, msTimeout: Int, ioThreads: Int)
+  case class ElasticSearchConfig(url: String, msTimeout: Int, ioThreads: Int)
 
   // specific serializer
   class Serializer extends JsonDeserializer[Alert] {
@@ -51,5 +51,17 @@ object ElasticsAlertsRepository {
       // deserialize data only
       serializer.fromJson(json.getAsJsonObject.get("_source"), classOf[Alert])
     }
+  }
+
+  def createElasticSearchConfig(config: Config): ElasticSearchConfig = {
+    ElasticSearchConfig(
+      config.getString("conf.elasticsearch.url"),
+      config.getInt("conf.elasticsearch.timeout"),
+      config.getInt("conf.ioThreadPoolSize")
+    )
+  }
+
+  def create(config: Config): ElasticsAlertsRepository = {
+    new ElasticsAlertsRepository(createElasticSearchConfig(config))
   }
 }
