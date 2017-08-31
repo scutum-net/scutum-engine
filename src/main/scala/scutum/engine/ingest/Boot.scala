@@ -6,8 +6,9 @@ import com.google.inject.Guice
 import scutum.engine.contracts._
 import com.typesafe.scalalogging._
 import akka.stream.ActorMaterializer
+import scutum.engine.ingest.Injector.Configuration
 import net.codingwell.scalaguice.InjectorExtensions._
-import scutum.engine.contracts.ConfigurationParser.Configuration
+
 
 object Boot extends LazyLogging{
   def main(args: Array[String]): Unit = {

@@ -1,7 +1,7 @@
 package scutum.engine.tests
 
 import org.scalatest.WordSpecLike
-import scutum.engine.contracts.Alert
+import scutum.engine.contracts.external.Alert
 import scutum.engine.repositories.ElasticsAlertsRepository
 
 class TestElasticAlertsRepository extends WordSpecLike{

@@ -1,6 +1,7 @@
 package scutum.engine.ingest
 
 import java.io.File
+
 import com.google.inject._
 import akka.actor.ActorSystem
 import scutum.engine.contracts._
@@ -8,7 +9,7 @@ import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import net.codingwell.scalaguice.ScalaModule
-import scutum.engine.contracts.ConfigurationParser.Configuration
+import scutum.engine.ingest.Injector.Configuration
 import scutum.engine.repositories.KafkaEventsRepository
 
 
@@ -42,7 +43,9 @@ class Injector extends AbstractModule with ScalaModule with LazyLogging {
 
   @Provides
   @Singleton def getCommonConfig(implicit @Inject config: Config): Configuration = {
-    ConfigurationParser.parseConfig(config)
+    Configuration(
+      config.getInt("conf.port"),
+      config.getString("conf.host"))
   }
 
 
@@ -55,4 +58,8 @@ class Injector extends AbstractModule with ScalaModule with LazyLogging {
       override def publishData(key: String, data: String): Unit = eventsRepository.publish(key, data)
     }
   }
+}
+
+object Injector {
+  case class Configuration(port: Int, host: String)
 }

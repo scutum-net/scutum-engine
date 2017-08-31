@@ -2,12 +2,17 @@ package scutum.engine.repositories
 
 import wabisabi.Client
 import com.google.gson._
+
 import scala.concurrent._
 import java.lang.reflect._
+
 import com.typesafe.config._
+
 import scala.concurrent.duration._
 import scutum.engine.contracts._
 import java.util.concurrent.Executors
+
+import scutum.engine.contracts.external.Alert
 import scutum.engine.repositories.ElasticsAlertsRepository._
 
 // elastic search alerts repo
