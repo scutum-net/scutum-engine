@@ -2,12 +2,15 @@ package scutum.engine.processor
 
 import akka.actor._
 import java.io.File
+
 import com.google.inject._
+import com.typesafe.config._
+import scutum.engine.repositories._
 import akka.stream.ActorMaterializer
 import com.typesafe.scalalogging.LazyLogging
 import net.codingwell.scalaguice.ScalaModule
 import scutum.engine.contracts.ProcessingService
-import scutum.engine.contracts.external.ScanEvent
+import scutum.engine.contracts.external.{Alert, ScanEvent}
 
 class Injector extends AbstractModule with ScalaModule with LazyLogging {
 
@@ -24,36 +27,23 @@ class Injector extends AbstractModule with ScalaModule with LazyLogging {
   @Singleton def getMaterializer(implicit @Inject system: ActorSystem) = ActorMaterializer()
 
   @Provides
-  @Singleton def geProcessingActor(implicit @Inject system: ActorSystem) = ActorMaterializer()
+  @Singleton def getConfig: Config = {
+    val configFile = new File("./app.conf")
+    logger.info(s"config loaded: ${configFile.getCanonicalPath} ${configFile.exists}")
+    if (configFile.exists)
+      ConfigFactory.parseFile(configFile)
+    else
+      ConfigFactory.load("app.conf")
+  }
 
-}
+  @Provides
+  @Singleton def getProcessingService(implicit @Inject config: Config): ProcessingService = {
+    val kafka = KafkaEventsRepository.create(config)
+    val elasticsearch = ElasticsAlertsRepository.create(config)
 
-
-object Injector {
-  case object Interrupt
-  case class ProcessorConfig(jarFolder: String)
-  case class ProcessingLoopArgs(service: ProcessingService, config: ProcessorConfig)
-
-
-  class ActorProcessingLoop(args: ProcessingLoopArgs) extends Actor with LazyLogging{
-    private var interruptLoop = false
-
-    override def receive: Receive = {
-      case Interrupt => interruptLoop = true
-      case x: Any => logger.error(s"unknown message type ${x.getClass}")
-    }
-
-
-    private def startLoop() = {
-      while(!interruptLoop) {
-        val events = args.service.loadScanEvents()
-        processEvents(events)
-      }
-    }
-
-    private def processEvents(events: Seq[ScanEvent]) = {
-      val processors = args.service.loadProcessors("")
-      events.foreach(i => args.service.process(processors, i))
+    new {} with ProcessingService {
+      override def loadScanEvents(): Seq[ScanEvent] = kafka.consume()
+      override def publishAlert(category: String, alert: Alert): Unit = elasticsearch.create(category, alert)
     }
   }
 }

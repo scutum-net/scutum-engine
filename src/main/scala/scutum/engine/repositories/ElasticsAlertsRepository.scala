@@ -61,7 +61,7 @@ object ElasticsAlertsRepository {
   def createElasticSearchConfig(config: Config): ElasticSearchConfig = {
     ElasticSearchConfig(
       config.getString("conf.elasticsearch.url"),
-      config.getInt("conf.elasticsearch.timeout"),
+      config.getInt("conf.elasticsearch.timeoutMs"),
       config.getInt("conf.ioThreadPoolSize")
     )
   }

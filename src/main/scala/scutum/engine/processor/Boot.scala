@@ -1,13 +1,14 @@
 package scutum.engine.processor
 
-import akka.actor._
+import scala.util.Try
 import akka.actor.ActorSystem
 import com.google.inject.Guice
 import akka.stream.ActorMaterializer
 import com.typesafe.scalalogging.LazyLogging
 import net.codingwell.scalaguice.InjectorExtensions._
+import scutum.engine.contracts.ProcessingService
 
-class Boot extends LazyLogging{
+object Boot extends LazyLogging{
   def main(args: Array[String]): Unit = {
     logger.debug("starting scutum processing")
     val injector = Guice.createInjector(new Injector())
@@ -15,12 +16,18 @@ class Boot extends LazyLogging{
     implicit val system = injector.instance[ActorSystem]
     implicit val executionContext = system.dispatcher
     implicit val materializer = injector.instance[ActorMaterializer]
+    val processor = injector.instance[ProcessingService]
 
-    // start processing loop
-    val processingLoop = injector.instance[ActorRef]
+    // TODO: replace by actor
+    while (true) {
+      val processed = Try(processor.process(""))
+      if(processed.getOrElse(0) == 0) Thread.sleep(1000)
+      logger.info(s"processed items:${processed.getOrElse(0)}")
+      if(processed.isFailure) logger.error(s"failed to process ${processed.failed.get}")
+    }
+
 
     sys.addShutdownHook({
-      processingLoop ! Injector.Interrupt
       system.terminate()
       logger.info("exiting scutum processor")
     })

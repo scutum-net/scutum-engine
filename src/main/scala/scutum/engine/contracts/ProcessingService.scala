@@ -3,7 +3,7 @@ package scutum.engine.contracts
 import scutum.engine.contracts.external._
 import com.typesafe.scalalogging.LazyLogging
 
-trait ProcessingService extends LazyLogging{
+trait ProcessingService extends LazyLogging {
   def loadScanEvents(): Seq[ScanEvent]
 
   def publishAlert(category: String, alert: Alert): Unit
@@ -13,13 +13,20 @@ trait ProcessingService extends LazyLogging{
     List()
   }
 
+  def process(path: String): Int = {
+    val scanEvents = loadScanEvents()
+    val processors = loadProcessors(path)
+    scanEvents.foreach(i => process(processors, i))
+    scanEvents.length
+  }
+
   def process(processors: Seq[Processor], scanEvent: ScanEvent): Unit = {
     val processor = processors.find(_.getScanType == scanEvent.scanType)
-    if(processor.isEmpty){
+    if (processor.isEmpty) {
       logger.error(s"unknown scanner type ${scanEvent.scanType}")
       publishAlert("unknown_scanner", Alert(scanEvent.scanType, scanEvent.data))
     }
-    else{
+    else {
       val result = processor.get.process(scanEvent)
       result.foreach(i => publishAlert(scanEvent.scanType.toString, i))
     }

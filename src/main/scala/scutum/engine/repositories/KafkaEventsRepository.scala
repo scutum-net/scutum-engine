@@ -1,6 +1,7 @@
 package scutum.engine.repositories
 
 import java.util.UUID
+
 import com.google.gson._
 import com.typesafe.config._
 import org.apache.kafka.clients._
@@ -8,11 +9,13 @@ import scala.collection.JavaConverters._
 import org.apache.kafka.clients.consumer._
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.config.SslConfigs
+import scutum.engine.contracts.external.ScanEvent
 import scutum.engine.repositories.KafkaEventsRepository._
 
 class KafkaEventsRepository(config: KafkaConfig) {
   private val consumer = createConsumer()
   private val producer = createProducer()
+  private val serializer = KafkaEventsRepository.serializer
 
 
   def publish(data: Seq[(String, String)]): Unit = {
@@ -30,9 +33,9 @@ class KafkaEventsRepository(config: KafkaConfig) {
     if(flush) producer.flush()
   }
 
-  def consume(): Seq[(String, String)] = {
-    val data = consumer.poll(config.pollTimeout)
-    data.asScala.map(i => (i.key(), i.value())).toSeq
+  def consume(): Seq[ScanEvent] = {
+    val data = consumer.poll(config.pollTimeout).asScala.toSeq
+    data.map(i => serializer.fromJson[ScanEvent](i.value(), ScanEvent.getClass))
   }
 
   private def createProducer(): KafkaProducer[String, String] = {
