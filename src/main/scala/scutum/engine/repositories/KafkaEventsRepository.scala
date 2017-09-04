@@ -35,7 +35,7 @@ class KafkaEventsRepository(config: KafkaConfig) {
 
   def consume(): Seq[ScanEvent] = {
     val data = consumer.poll(config.pollTimeout).asScala.toSeq
-    data.map(i => serializer.fromJson[ScanEvent](i.value(), ScanEvent.getClass))
+    data.map(i => serializer.fromJson(i.value(), classOf[ScanEvent]))
   }
 
   private def createProducer(): KafkaProducer[String, String] = {
