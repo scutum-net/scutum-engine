@@ -1,10 +1,10 @@
 package scutum.engine.contracts
 
-import scutum.engine.contracts.external._
+import scutum.core.contracts._
 import com.typesafe.scalalogging.LazyLogging
 
 trait ProcessingService extends LazyLogging {
-  def loadScanEvents(): Seq[ScanEvent]
+  def loadScanEvents(): Seq[ScannedData]
 
   def publishAlert(category: String, alert: Alert): Unit
 
@@ -20,15 +20,15 @@ trait ProcessingService extends LazyLogging {
     scanEvents.length
   }
 
-  def process(processors: Seq[Processor], scanEvent: ScanEvent): Unit = {
-    val processor = processors.find(_.getScanType == scanEvent.scanType)
+  def process(processors: Seq[Processor], scanEvent: ScannedData): Unit = {
+    val processor = processors.find(_.getProviderId == scanEvent.getProviderId)
     if (processor.isEmpty) {
-      logger.error(s"unknown scanner type ${scanEvent.scanType}")
-      publishAlert("unknown_scanner", Alert(scanEvent.scanType, scanEvent.data))
+      logger.error(s"unknown scanner type ${scanEvent.getProviderId}")
+      publishAlert("unknown_scanner", new Alert(scanEvent.getProviderId + scanEvent.getData))
     }
     else {
       val result = processor.get.process(scanEvent)
-      result.foreach(i => publishAlert(scanEvent.scanType.toString, i))
+      result.foreach(i => publishAlert(scanEvent.getProviderId.toString, i))
     }
   }
 }

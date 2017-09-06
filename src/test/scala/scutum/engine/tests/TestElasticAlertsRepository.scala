@@ -1,7 +1,7 @@
 package scutum.engine.tests
 
 import org.scalatest.WordSpecLike
-import scutum.engine.contracts.external.Alert
+import scutum.core.contracts.Alert
 import scutum.engine.repositories.ElasticsAlertsRepository
 
 class TestElasticAlertsRepository extends WordSpecLike{
@@ -11,11 +11,12 @@ class TestElasticAlertsRepository extends WordSpecLike{
         .ElasticSearchConfig("http://localhost:9200", 100, 8)
       val repo = new ElasticsAlertsRepository(config)
 
-      val in = Alert(101, "Some alert")
-      repo.create("test", in)
+      val in = new Alert("Some alert")
+      val id = repo.create("test", in)
 
-      val out = repo.read("test", 101)
-      assert(in == out)
+      Thread.sleep(200)
+      val out = repo.read("test", id)
+      assert(in.getDetails == out.getDetails)
     }
   }
 }

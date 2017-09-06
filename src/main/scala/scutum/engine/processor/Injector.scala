@@ -9,8 +9,8 @@ import scutum.engine.repositories._
 import akka.stream.ActorMaterializer
 import com.typesafe.scalalogging.LazyLogging
 import net.codingwell.scalaguice.ScalaModule
+import scutum.core.contracts.{Alert, ScannedData}
 import scutum.engine.contracts.ProcessingService
-import scutum.engine.contracts.external.{Alert, ScanEvent}
 
 class Injector extends AbstractModule with ScalaModule with LazyLogging {
 
@@ -42,7 +42,7 @@ class Injector extends AbstractModule with ScalaModule with LazyLogging {
     val elasticsearch = ElasticsAlertsRepository.create(config)
 
     new {} with ProcessingService {
-      override def loadScanEvents(): Seq[ScanEvent] = kafka.consume()
+      override def loadScanEvents(): Seq[ScannedData] = kafka.consume()
       override def publishAlert(category: String, alert: Alert): Unit = elasticsearch.create(category, alert)
     }
   }
