@@ -14,7 +14,7 @@ import scutum.engine.contracts.ProcessingService
 
 class Injector extends AbstractModule with ScalaModule with LazyLogging {
 
-  override def configure(): Unit = {
+  override def configure(): Unit ={
     val logFile = new File("./logback.xml")
     if (logFile.exists) System.setProperty("logback.configurationFile", logFile.getCanonicalPath)
     logger.info(s"logback loaded: ${logFile.getCanonicalPath} ${logFile.exists}")
@@ -28,12 +28,12 @@ class Injector extends AbstractModule with ScalaModule with LazyLogging {
 
   @Provides
   @Singleton def getConfig: Config = {
-    val configFile = new File("./app.conf")
+    val codeSource = this.getClass.getProtectionDomain.getCodeSource
+    val dir = new File(codeSource.getLocation.toURI.getPath).getParentFile.getPath
+    val configFile = new File(dir + "/app.conf")
+
     logger.info(s"config loaded: ${configFile.getCanonicalPath} ${configFile.exists}")
-    if (configFile.exists)
-      ConfigFactory.parseFile(configFile)
-    else
-      ConfigFactory.load("app.conf")
+    if (configFile.exists) ConfigFactory.parseFile(configFile) else ConfigFactory.load("app.conf")
   }
 
   @Provides
