@@ -1,24 +1,16 @@
 package scutum.engine.repositories
 
 import java.time._
-
 import wabisabi.Client
 import com.google.gson._
-
 import scala.concurrent._
 import java.lang.reflect._
-
 import com.typesafe.config._
 import java.time.temporal._
-
 import scala.concurrent.duration._
 import java.util.concurrent.Executors
-
 import scutum.core.contracts.Alert
 import scutum.engine.repositories.ElasticsAlertsRepository._
-
-import scala.util.Try
-
 
 class ElasticsAlertsRepository(config: ElasticSearchConfig) {
   private val client = new Client(config.url)
@@ -28,8 +20,8 @@ class ElasticsAlertsRepository(config: ElasticSearchConfig) {
   private implicit val context = ExecutionContext.fromExecutor(threadsPool)
 
   def create(category: String, alert: Alert): Long = {
-    val f = Try(client.verifyIndex(category))
-    val result = Await.result(f.get.map(_.getStatusCode), config.msTimeout milli)
+    val f = client.verifyIndex(category)
+    val result = Await.result(f.map(_.getStatusCode), config.msTimeout milli)
     if(result != 200) client.createIndex(category)
 
     val id = ElasticsAlertsRepository.createId(alert.getDetails)
