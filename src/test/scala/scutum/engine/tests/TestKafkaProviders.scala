@@ -23,7 +23,7 @@ class TestKafkaProviders extends WordSpecLike{
 
         var dataOut = repository.consume()
         if (dataOut.isEmpty) dataOut = repository.consume()
-        assert(dataOut.head == dataIn)
+        assert(dataOut.head.getData == dataIn.getData)
       }
       else assert(true)
     }

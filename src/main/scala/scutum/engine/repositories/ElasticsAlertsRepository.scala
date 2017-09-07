@@ -1,58 +1,63 @@
 package scutum.engine.repositories
 
 import java.time._
+
 import wabisabi.Client
 import com.google.gson._
+
 import scala.concurrent._
 import java.lang.reflect._
+
 import com.typesafe.config._
 import java.time.temporal._
+
 import scala.concurrent.duration._
 import java.util.concurrent.Executors
+
 import scutum.core.contracts.Alert
 import scutum.engine.repositories.ElasticsAlertsRepository._
 
-// elastic search alerts repo
+import scala.util.Try
+
+
 class ElasticsAlertsRepository(config: ElasticSearchConfig) {
   private val client = new Client(config.url)
   private val serializer: Gson = new GsonBuilder()
-    .registerTypeAdapter(classOf[Alert], new Serializer).create()
+    .registerTypeAdapter(classOf[Entry], new Serializer).create()
   private val threadsPool = Executors.newFixedThreadPool(config.ioThreads)
   private implicit val context = ExecutionContext.fromExecutor(threadsPool)
 
   def create(category: String, alert: Alert): Long = {
-    val f = client.verifyIndex(category).map(_.getStatusCode)
-    val result = Await.result(f, config.msTimeout milli)
+    val f = Try(client.verifyIndex(category))
+    val result = Await.result(f.get.map(_.getStatusCode), config.msTimeout milli)
     if(result != 200) client.createIndex(category)
 
     val id = ElasticsAlertsRepository.createId(alert.getDetails)
-    client.index(category, "alert", Some(id.toString), serializer.toJson(alert), true)
+    client.index(category, "alert", Some(id.toString), serializer.toJson(Entry(alert)), true)
     id
   }
 
   def read(category: String, id: Long): Alert = {
     val response = client.get(category, "alert", id.toString)
     val json = Await.result(response.map(_.getResponseBody), config.msTimeout milli)
-
-    serializer.fromJson[Alert](json, classOf[Alert])
+    serializer.fromJson[Entry](json, classOf[Entry]).alert
   }
 }
 
 
 object ElasticsAlertsRepository {
   private val epoch = LocalDateTime.of(2017, 1, 1, 0, 0, 0)
-  // serializer
   private val serializer: Gson = new GsonBuilder().create()
 
-  // elastic search config
   case class ElasticSearchConfig(url: String, msTimeout: Int, ioThreads: Int)
+  case class Entry(alert: Alert, timestamp: String = LocalDateTime.now(ZoneId.of("UTC")).toString)
 
   // specific serializer
-  class Serializer extends JsonDeserializer[Alert] {
+  class Serializer extends JsonDeserializer[Entry] {
     override def deserialize(json: JsonElement, typeOfT: Type,
-                             context: JsonDeserializationContext): Alert = {
+                             context: JsonDeserializationContext): Entry = {
       // deserialize data only
-      serializer.fromJson(json.getAsJsonObject.get("_source"), classOf[Alert])
+      serializer.fromJson(json.getAsJsonObject.get("_source"), classOf[Entry])
     }
   }
 
