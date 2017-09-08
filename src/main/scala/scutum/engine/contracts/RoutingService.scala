@@ -21,6 +21,7 @@ trait RoutingService extends LazyLogging{
 
   def routeAuth: Route = get {
     pathPrefix("auth" / IntNumber){ customerId =>
+      logger.debug(s"routeAuth $customerId")
 
       if(authorizeCustomer(customerId)) {
         val id = RoutingService.generateSessionId()
@@ -35,9 +36,13 @@ trait RoutingService extends LazyLogging{
     pathPrefix("event" / IntNumber / IntNumber / LongNumber) {
       (customerId, scannerType, sessionId) =>
         entity(as[String]) { data =>
+          logger.debug(s"routeEvent $customerId, $scannerType, $sessionId")
           Try(publishData(sessionId.toString, data)) match{
-            case Success(x) => complete(s"done $customerId $scannerType $sessionId")
-            case Failure(x) => complete(s"failed $x")
+            case Success(x) =>
+              complete(s"done $customerId $scannerType $sessionId")
+            case Failure(x) =>
+              logger.error(s"routeEvent failed ${x.getMessage}")
+              complete(s"failed $x")
           }
         }
     }
