@@ -1,4 +1,8 @@
-import java.time.{LocalDateTime, ZoneId}
+import com.google.gson.GsonBuilder
+import scutum.core.contracts.ScannedData
 
-LocalDateTime.now.toString
-LocalDateTime.now(ZoneId.of("UTC")).toString
+val x = new ScannedData(1,1,1,"postman")
+
+val gson = new GsonBuilder().create()
+
+val z = gson.toJson(x)

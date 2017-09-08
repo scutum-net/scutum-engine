@@ -2,9 +2,12 @@ package scutum.engine.contracts
 
 import java.time._
 import java.time.temporal.ChronoUnit
+
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import com.typesafe.scalalogging.LazyLogging
+
+import scala.util.{Failure, Success, Try}
 
 trait RoutingService extends LazyLogging{
   def publishData(key: String, data: String): Unit
@@ -32,8 +35,10 @@ trait RoutingService extends LazyLogging{
     pathPrefix("event" / IntNumber / IntNumber / LongNumber) {
       (customerId, scannerType, sessionId) =>
         entity(as[String]) { data =>
-          publishData(sessionId.toString, data)
-          complete(s"post $customerId $scannerType $sessionId")
+          Try(publishData(sessionId.toString, data)) match{
+            case Success(x) => complete(s"done $customerId $scannerType $sessionId")
+            case Failure(x) => complete(s"failed $x")
+          }
         }
     }
   }

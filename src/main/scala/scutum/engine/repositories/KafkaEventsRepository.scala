@@ -18,7 +18,6 @@ class KafkaEventsRepository(config: KafkaConfig) {
   private val producer = createProducer()
   private val serializer = KafkaEventsRepository.serializer
 
-
   def publish(data: Seq[(String, String)]): Unit = {
     data.take(data.length - 1).foreach(i => publish(i._1, i._2, flush = false))
     publish(data.last._1, data.last._2)
