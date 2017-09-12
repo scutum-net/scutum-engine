@@ -10,7 +10,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import net.codingwell.scalaguice.ScalaModule
 import scutum.engine.ingest.Injector.Configuration
-import scutum.engine.repositories.KafkaEventsRepository
+import scutum.engine.repositories.{FileSystemRepository, KafkaEventsRepository}
 
 
 class Injector extends AbstractModule with ScalaModule with LazyLogging {
@@ -32,10 +32,7 @@ class Injector extends AbstractModule with ScalaModule with LazyLogging {
 
   @Provides
   @Singleton def getConfig: Config = {
-    val codeSource = this.getClass.getProtectionDomain.getCodeSource
-    val dir = new File(codeSource.getLocation.toURI.getPath).getParentFile.getPath
-    val configFile = new File(dir + "/app.conf")
-
+    val configFile = new File(FileSystemRepository.getRunningDirectory + "/app.conf")
     logger.info(s"config loaded: ${configFile.getCanonicalPath} ${configFile.exists}")
     if (configFile.exists) ConfigFactory.parseFile(configFile) else ConfigFactory.load("app.conf")
   }
