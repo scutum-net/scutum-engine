@@ -2,6 +2,7 @@ package scutum.engine.contracts
 
 import scutum.core.contracts._
 import com.typesafe.scalalogging.LazyLogging
+import scutum.engine.repositories.FileSystemRepository
 
 trait ProcessingService extends LazyLogging {
   def loadScanEvents(): Seq[ScannedData]
@@ -10,6 +11,7 @@ trait ProcessingService extends LazyLogging {
 
 
   def loadProcessors(path: String): Seq[Processor] = {
+    val jars =  FileSystemRepository.loadFiles(path, "jar")
     List()
   }
 
