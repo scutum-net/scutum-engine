@@ -18,7 +18,7 @@ class TestKafkaProviders extends WordSpecLike{
         while (repository.consume().nonEmpty) println(s"old items in kafka")
 
 
-        val dataIn = new ScannedData(1, 1, 1, "some data")
+        val dataIn = new ScannedData(1, 1, "some provider name", 1, 1, "some data")
         repository.publish("1_1_1", serializer.toJson(dataIn))
 
         var dataOut = repository.consume()

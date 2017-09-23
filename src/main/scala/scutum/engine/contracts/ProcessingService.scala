@@ -16,7 +16,7 @@ trait ProcessingService extends LazyLogging {
 
   def publishAlert(category: String, alert: Alert): Unit
 
-  def loadProcessors(path: String): Seq[Processor] = {
+  def loadProcessors(path: String): Seq[IProcessor] = {
     val files = FileSystemRepository.loadFiles(path, "jar")
     val processors = files.flatMap(i => loadClasses(new File(i)))
     processors
@@ -39,7 +39,7 @@ trait ProcessingService extends LazyLogging {
     loader.loadClass(className)
       .getConstructors()(0)
       .newInstance()
-      .asInstanceOf[Processor]
+      .asInstanceOf[IProcessor]
   }
 
   def process(path: String): Int = {
@@ -49,7 +49,7 @@ trait ProcessingService extends LazyLogging {
     scanEvents.length
   }
 
-  def process(processors: Seq[Processor], scanEvent: ScannedData): Unit = {
+  def process(processors: Seq[IProcessor], scanEvent: ScannedData): Unit = {
     val processor = processors.find(_.getProviderId == scanEvent.getProviderId)
     if (processor.isEmpty) {
       logger.error(s"unknown scanner type ${scanEvent.getProviderId}")

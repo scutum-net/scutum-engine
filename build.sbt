@@ -2,7 +2,7 @@ name := "scutum-engine"
 version := "1.0"
 scalaVersion := "2.12.1"
 
-libraryDependencies += "me.scutum" % "scutum-core" % "1.3.2"
+libraryDependencies += "me.scutum" % "scutum-core" % "1.3.4"
 libraryDependencies += "com.google.code.gson" % "gson" % "2.8.1"
 libraryDependencies += "com.github.gphat" %% "wabisabi" % "2.2.0"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
