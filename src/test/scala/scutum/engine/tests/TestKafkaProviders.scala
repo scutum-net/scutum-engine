@@ -19,7 +19,8 @@ class TestKafkaProviders extends WordSpecLike{
 
 
         val dataIn = new ScannedData(1, 1, "some provider name", 1, 1, "some data")
-        repository.publish("1_1_1", serializer.toJson(dataIn))
+        val dataInJson = serializer.toJson(dataIn)
+        repository.publish("1_1_1", dataInJson)
 
         var dataOut = repository.consume()
         if (dataOut.isEmpty) dataOut = repository.consume()
